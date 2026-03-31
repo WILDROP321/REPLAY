@@ -1,0 +1,285 @@
+{% macro render_search_card(card) -%}
+    <article
+        class="stream-card media-card"
+        data-imdb-id="{{ card.imdb_id }}"
+        data-title="{{ card.title }}"
+        data-media-type="{{ card.media_type }}"
+        data-year="{{ card.year }}"
+        data-poster-url="{{ card.poster_url }}"
+        data-season="{{ card.season }}"
+        data-episode="{{ card.episode }}"
+        data-watch-url="{{ card.watch_url }}"
+    >
+        <a class="card-poster-link" href="{{ card.watch_url }}">
+            <div class="card-poster-frame">
+                {% if card.poster_url %}
+                    <img src="{{ card.poster_url }}" alt="{{ card.title }} poster" class="card-poster">
+                {% else %}
+                    <div class="card-poster placeholder">{{ card.title }}</div>
+                {% endif %}
+            </div>
+        </a>
+
+        <div class="card-body">
+            <p class="card-meta">{{ card.meta }}</p>
+            <h3 class="card-title">{{ card.title }}</h3>
+            <p class="card-detail">{{ card.detail }}</p>
+
+            <div class="card-actions">
+                <a class="card-button" href="{{ card.watch_url }}">{{ card.watch_label }}</a>
+                <button type="button" class="card-button secondary js-library-toggle">Star</button>
+            </div>
+        </div>
+    </article>
+{%- endmacro %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REPLAY</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body data-page="home">
+    <main class="app-shell">
+        <header class="app-bar panel" id="search">
+                <div class="brand-lockup">
+                <div class="brand-mark">REPLAY</div>
+                <div>
+                    <p class="eyebrow">Watch your favourite Movies & TV Shows</p>
+                    <h1>Search faster. Save smarter. Resume instantly.</h1>
+                    <p class="bar-copy">A streamlined media workspace for Movies and TV Shows.</p>
+                </div>
+            </div>
+
+            <form class="search-panel" method="get" action="{{ url_for('index') }}">
+                <div class="search-row">
+                    <label class="search-field" for="q">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <circle cx="11" cy="11" r="7"></circle>
+                            <path d="M20 20l-3.5-3.5"></path>
+                        </svg>
+                        <input
+                            id="q"
+                            name="q"
+                            type="search"
+                            value="{{ query }}"
+                            placeholder="Search movies or TV shows"
+                            autocomplete="off"
+                            required
+                        >
+                    </label>
+
+                    <button class="search-submit" type="submit">Search</button>
+                </div>
+
+                <div class="search-utility">
+                    <div class="search-options">
+                        <label class="mini-field">
+                            <span>Season</span>
+                            <input name="season" type="number" min="1" value="{{ season }}">
+                        </label>
+                        <label class="mini-field">
+                            <span>Episode</span>
+                            <input name="episode" type="number" min="1" value="{{ episode }}">
+                        </label>
+                        <input type="hidden" name="tab" value="{{ result_tab }}">
+                    </div>
+
+                    <div class="quick-stats">
+                        <span class="stat-pill" id="saved-count-pill">0 saved</span>
+                        <span class="stat-pill" id="show-count-pill">0 shows</span>
+                        <span class="stat-pill" id="movie-count-pill">0 movies</span>
+                        <a class="stat-pill" href="{{ url_for('info') }}">Content Moderation</a>
+                    </div>
+                </div>
+            </form>
+        </header>
+
+        {% if error %}
+            <section class="message error">{{ error }}</section>
+        {% endif %}
+
+        {% if query %}
+            <section class="results-shell panel" id="results">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">Search Results</p>
+                        <h2>Results for "{{ query }}"</h2>
+                    </div>
+                    <p class="section-copy">{{ movie_results|length + tv_results|length }} matches</p>
+                </div>
+
+                <div class="tab-row">
+                    <a class="tab-pill {% if result_tab == 'movies' %}active{% endif %}" href="{{ url_for('index', q=query, season=season, episode=episode, tab='movies') }}">
+                        Movies <span>{{ movie_results|length }}</span>
+                    </a>
+                    <a class="tab-pill {% if result_tab == 'tv' %}active{% endif %}" href="{{ url_for('index', q=query, season=season, episode=episode, tab='tv') }}">
+                        TV Shows <span>{{ tv_results|length }}</span>
+                    </a>
+                </div>
+
+                {% if result_tab == "movies" %}
+                    {% if movie_results %}
+                        <div class="results-grid">
+                            {% for card in movie_results %}
+                                {{ render_search_card(card) }}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <section class="message compact-message">No movie results found for "{{ query }}".</section>
+                    {% endif %}
+                {% else %}
+                    {% if tv_results %}
+                        <div class="results-grid">
+                            {% for card in tv_results %}
+                                {{ render_search_card(card) }}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <section class="message compact-message">No TV results found for "{{ query }}".</section>
+                    {% endif %}
+                {% endif %}
+            </section>
+        {% endif %}
+
+        <section class="discover-stack" id="library-column" hidden>
+                <section class="rail-block" id="continue-panel" hidden>
+                    <div class="section-heading library-heading">
+                        <div>
+                            <p class="eyebrow">Your Library</p>
+                            <h2>Continue Watching</h2>
+                        </div>
+                        <div class="rail-controls">
+                            <p class="section-copy">Recent playback across shows and films.</p>
+                            <div class="carousel-arrows">
+                                <button type="button" class="carousel-arrow js-carousel-prev" aria-label="Previous">‹</button>
+                                <button type="button" class="carousel-arrow js-carousel-next" aria-label="Next">›</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-shell js-carousel-shell">
+                        <div class="card-rail js-card-rail" id="continue-watching-grid"></div>
+                    </div>
+                    <section class="message compact-message library-empty" id="continue-empty" hidden></section>
+                </section>
+
+                <section class="rail-block" id="shows-panel" hidden>
+                    <div class="section-heading library-heading">
+                        <div>
+                            <p class="eyebrow">Your Library</p>
+                            <h2>Saved Shows</h2>
+                        </div>
+                        <div class="rail-controls">
+                            <p class="section-copy">Series you want to keep close.</p>
+                            <div class="carousel-arrows">
+                                <button type="button" class="carousel-arrow js-carousel-prev" aria-label="Previous">‹</button>
+                                <button type="button" class="carousel-arrow js-carousel-next" aria-label="Next">›</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-shell js-carousel-shell">
+                        <div class="card-rail js-card-rail" id="saved-shows-grid"></div>
+                    </div>
+                    <section class="message compact-message library-empty" id="shows-empty" hidden></section>
+                </section>
+
+                <section class="rail-block" id="movies-panel" hidden>
+                    <div class="section-heading library-heading">
+                        <div>
+                            <p class="eyebrow">Your Library</p>
+                            <h2>Saved Movies</h2>
+                        </div>
+                        <div class="rail-controls">
+                            <p class="section-copy">Films you've pinned for later.</p>
+                            <div class="carousel-arrows">
+                                <button type="button" class="carousel-arrow js-carousel-prev" aria-label="Previous">‹</button>
+                                <button type="button" class="carousel-arrow js-carousel-next" aria-label="Next">›</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-shell js-carousel-shell">
+                        <div class="card-rail js-card-rail" id="saved-movies-grid"></div>
+                    </div>
+                    <section class="message compact-message library-empty" id="movies-empty" hidden></section>
+                </section>
+        </section>
+
+        {% if hero_card %}
+            <section class="hero-banner panel" {% if hero_card.backdrop_url %}style="--hero-image: url('{{ hero_card.backdrop_url }}');"{% endif %}>
+                <div class="hero-content">
+                    <p class="eyebrow">{{ hero_card.eyebrow }}</p>
+                    <h2>{{ hero_card.title }}</h2>
+                    <p class="hero-meta">{{ hero_card.meta }}</p>
+                    <p class="hero-summary">{{ hero_card.summary }}</p>
+
+                    <div class="hero-actions">
+                        <a class="hero-button" href="{{ hero_card.watch_url }}">{{ hero_card.watch_label }}</a>
+                        <a class="hero-button secondary" href="#library-column">Go to My Library</a>
+                    </div>
+                </div>
+            </section>
+        {% endif %}
+
+        {% if discover_rows %}
+            <div class="discover-stack">
+                {% if trending_tv_cards %}
+                    <section class="rail-block trending-showcase" id="trending-now" data-trending-tv='{{ trending_tv_cards|tojson|safe }}'>
+                        <div class="section-heading">
+                            <div>
+                                <p class="eyebrow">Trending TV Now</p>
+                                <h2>Quick picks for right now</h2>
+                            </div>
+                            <div class="rail-controls">
+                                <p class="section-copy">See what's being played the most</p>
+                                <div class="carousel-arrows">
+                                    <button type="button" class="carousel-arrow js-carousel-prev" aria-label="Previous">‹</button>
+                                    <button type="button" class="carousel-arrow js-carousel-next" aria-label="Next">›</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="carousel-shell js-carousel-shell">
+                            <div class="card-rail js-card-rail">
+                                {% for card in trending_tv_cards %}
+                                    {{ render_search_card(card) }}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </section>
+                {% endif %}
+
+                {% for row in discover_rows %}
+                    <section class="rail-block">
+                        <div class="section-heading">
+                            <div>
+                                <p class="eyebrow">Discover</p>
+                                <h2>{{ row.title }}</h2>
+                            </div>
+                            <div class="rail-controls">
+                                <p class="section-copy">{{ row.subtitle }}</p>
+                                <div class="carousel-arrows">
+                                    <button type="button" class="carousel-arrow js-carousel-prev" aria-label="Previous">‹</button>
+                                    <button type="button" class="carousel-arrow js-carousel-next" aria-label="Next">›</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="carousel-shell js-carousel-shell">
+                            <div class="card-rail js-card-rail">
+                                {% for card in row.cards %}
+                                    {{ render_search_card(card) }}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </section>
+                {% endfor %}
+            </div>
+        {% elif not hero_card %}
+            <section class="message">Search something new to start shaping the page.</section>
+        {% endif %}
+    </main>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

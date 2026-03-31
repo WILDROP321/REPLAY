@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} | REPLAY</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body
+    class="player-page"
+    data-page="player"
+    data-imdb-id="{{ imdb_id }}"
+    data-title="{{ title }}"
+    data-media-type="{{ media_type }}"
+    data-year="{{ year }}"
+    data-poster-url="{{ poster_url }}"
+    data-season="{{ season }}"
+    data-episode="{{ episode }}"
+>
+    <main class="player-shell">
+        <header class="player-header">
+            <div>
+                <p class="eyebrow">Now Playing</p>
+                <h1>{{ title }}</h1>
+                <p class="player-meta">
+                    {{ media_type|upper }}
+                    {% if year %} • {{ year }}{% endif %}
+                    {% if media_type == "tv" %} • Season {{ season }} Episode {{ episode }}{% endif %}
+                    • {{ imdb_id }}
+                </p>
+            </div>
+
+            <div class="player-actions">
+                <a class="secondary-link" href="{{ url_for('index') }}">Back to search</a>
+                <a class="secondary-link" href="{{ url_for('info') }}"> CONTENT MODERATION</a>
+                <a class="secondary-link" href="{{ embed_url }}" target="_blank" rel="noopener noreferrer">Open source page</a>
+                <button type="button" class="secondary-link js-player-star">Star</button>
+            </div>
+        </header>
+
+        {% if media_type == "tv" %}
+            <section class="panel compact-panel">
+                <form class="episode-form js-episode-form" method="get" action="{{ url_for('watch', media_type=media_type, imdb_id=imdb_id) }}">
+                    <input type="hidden" name="title" value="{{ title }}">
+                    <input type="hidden" name="year" value="{{ year }}">
+                    <input type="hidden" name="poster_url" value="{{ poster_url }}">
+                    <label>
+                        <span>Season</span>
+                        <input name="season" type="number" min="1" value="{{ season }}">
+                    </label>
+                    <label>
+                        <span>Episode</span>
+                        <input name="episode" type="number" min="1" value="{{ episode }}">
+                    </label>
+                    <button type="submit">Save and load</button>
+                </form>
+            </section>
+        {% endif %}
+
+        <section class="player-frame-wrap">
+            <iframe
+                class="player-frame"
+                src="{{ embed_url }}"
+                title="{{ title }}"
+                allow="autoplay; fullscreen; picture-in-picture"
+                allowfullscreen
+                referrerpolicy="origin"
+            ></iframe>
+        </section>
+
+        <section class="panel player-details-panel">
+            <div class="player-details-grid">
+                <div class="player-details-copy">
+                    <p class="eyebrow">About This Title</p>
+                    <h2>{{ title }}</h2>
+                    {% if overview %}
+                        <p class="player-description">{{ overview }}</p>
+                    {% else %}
+                        <p class="player-description">Metadata for this title is limited right now, but playback is ready.</p>
+                    {% endif %}
+                </div>
+
+                <aside class="player-side-meta">
+                    <div class="player-meta-pills">
+                        {% if rating %}
+                            <div class="meta-pill">
+                                <span class="meta-label">Rating</span>
+                                <strong>{{ rating }}</strong>
+                            </div>
+                        {% endif %}
+                        {% if genre_text %}
+                            <div class="meta-pill">
+                                <span class="meta-label">Genres</span>
+                                <strong>{{ genre_text }}</strong>
+                            </div>
+                        {% endif %}
+                        {% if vote_count %}
+                            <div class="meta-pill">
+                                <span class="meta-label">Votes</span>
+                                <strong>{{ "{:,}".format(vote_count) }}</strong>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {% if cast_names %}
+                        <div class="cast-panel">
+                            <p class="eyebrow cast-eyebrow">Cast</p>
+                            <div class="cast-list">
+                                {% for actor in cast_names %}
+                                    <span class="cast-chip">{{ actor }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </aside>
+            </div>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

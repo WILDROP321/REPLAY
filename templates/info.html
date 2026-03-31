@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CONTENT MODERATION | REPLAY</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="player-page">
+    <main class="player-shell">
+        <header class="player-header">
+            <div>
+                <p class="eyebrow">MODERATION</p>
+                <h1>Content Notice</h1>
+                <p class="player-meta">Reference information about how content is surfaced in this app.</p>
+            </div>
+
+            <div class="player-actions">
+                <a class="secondary-link" href="{{ url_for('index') }}">Back to home</a>
+            </div>
+        </header>
+
+        <section class="panel compact-panel">
+            <div class="info-copy">
+                <p>REPLAY does not upload or host media files.</p>
+                <p>Content availability is provided by third-party sources.</p>
+                <p>Copyright remains with the respective owners.</p>
+                <p>Rights holders can contact the operator of this app for takedown requests.</p>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

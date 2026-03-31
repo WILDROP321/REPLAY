@@ -1,0 +1,14 @@
+.DS_Store
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+library.json
+analyze_hinge_export.py
+browser.py
+test.py
